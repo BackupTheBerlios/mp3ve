@@ -1,0 +1,80 @@
+;***********************************************************************
+;*  MP3VE - Standalone MP3 Player
+;*  Copyright (C) 2000,2001,2002 Marc Dressler, Jens Funke,
+;*                               Thomas Gutzeit, Nils Steenbock
+;*
+;*  This program is free software; you can redistribute it and/or modify
+;*  it under the terms of the GNU General Public License as published by
+;*  the Free Software Foundation; either version 2 of the License, or
+;*  (at your option) any later version.
+;*
+;*  This program is distributed in the hope that it will be useful,
+;*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;*  GNU General Public License for more details.
+;*
+;*  You should have received a copy of the GNU General Public License
+;*  along with this program; if not, write to the Free Software
+;*  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;*
+;*  info@mp3ve.de
+;***********************************************************************
+
+;***********************************************************************
+;* $Id: supported_atapi.txt,v 1.1 2002/02/24 11:58:06 dressler Exp $
+;***********************************************************************
+;*
+;*  Title           : Atapi Support List
+;*  Version         : 1.5
+;*
+;*  Filename        : supported_atapi.txt
+;*  Created         : 14.01.2001 by Marc Dressler
+;*  Last changed    : 23.02.2002 by Marc Dressler
+;*
+;*  Description     : list of supported atapi devices
+;*
+;*  Homepage        : www.MP3ve.de
+;*                    www.uC-Elektronik.de
+;*                    www.Hardware-Schmiede.de	
+;*
+;***********************************************************************
+
+
+Drive-Type	/Speed /Producer	      GV/Busy /Detect /Audio /MP3     /TOC     /Comment
+==========================================================================================================
+A32T		/  32x / Actima		      10/ ok   / ?    / ?    / v1.1ok / ?      /
+ASUS CD-S400/A	/  40x / Asus		      10/ ok   / ok   / ?    / ok     / ok     /
+ASUS CD-C450/A	/  45x / Asus		      10/ ok   / ok   / ?    / ok     / ok     /
+BCD 739/T	/   8x / BCD		      15/ ok   / ok   / ?    / speed  / ok     / mp3-speed problem
+CD3630E		/  36x / Creative	      10/ ok   / ?    / ?    / v1.1ok / ?      /
+CDA 268-03I	/   2x / Aztech		      15/ ok   / ok   / ?    / speed  / fail.  / mp3-speed problem
+CDR-1900A	/  32x / Nec Corporation      15/ ok   / ok   / ?    / ok     / ok     /
+CDR-C251	/  ?6x?/ Nec Corporation      15/ ok   / ok   / ?    / ok     / fail.  /  
+CR 581J		/      / Parasonic	      10/ ok   / ?    / ?    / v1.1ok / ?      /
+CRMC-FX001D	/   1x / Mitsumi	      10/ fail / -    / -    / -      / -      /
+CRMC-FX400B	/   4x / Mitsumi	      15/ ok   / ok   / ?    / speed  / fail.  / mp3-speed problem
+DR-444          /  12x / Pioneer              15/ ok   / ok   / ?    / ok     / ok     /
+LTN-264		/  24x / LITE-ON Technology   10/ ok   / ok   / ?    / ok     / ok     /
+LTN-32?		/  32x / LITE-ON Technology   15/ ok   / ok   / ?    / ok     / ok     / 
+TEAC PD 518E	/      / Teac PD-Drive	      10/ ok   / ?    / ?    / v1.1ok / ?      /
+VERTOS 600ESD	/      / Elitegroup           10/ ok   / ?    / ?    / v1.1ok / ?      /
+VERTOS 300SSD	/      / Elitegroup	      15/ ok   / ok   / ?    / speed  / ok     / mp3-speed problem
+XM-6102B	/  24x / Toshiba	      10/ fail / -    / -    / -      / -      /
+XC-200AI	/   2x / Philips	      15/ ok   / ok   / ?    / ?      / ?      / drive particulary out of order
+==========================================================================================================
+ok     - working
+fail.  - failed, not working (yet?)
+speed  - drive can´t read cdr with enough speed to play mp3-files (128Kbit)
+?      - not tested
+GV     - version of GAL, old version 10 has a bug
+
+If "Busy" failed, all other functions will failed, too.
+If MP3 is "ok" or "speed", then TOC will work, too (after bugfixing)
+
+Please report new drives to the support-area on the homepages listen in the header. 
+
+;*
+;* $Log: supported_atapi.txt,v $
+;* Revision 1.1  2002/02/24 11:58:06  dressler
+;* initial checkin
+;*

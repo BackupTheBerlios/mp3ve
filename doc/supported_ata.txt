@@ -1,0 +1,74 @@
+;***********************************************************************
+;*  MP3VE - Standalone MP3 Player
+;*  Copyright (C) 2000,2001,2002 Marc Dressler, Jens Funke,
+;*                               Thomas Gutzeit, Nils Steenbock
+;*
+;*  This program is free software; you can redistribute it and/or modify
+;*  it under the terms of the GNU General Public License as published by
+;*  the Free Software Foundation; either version 2 of the License, or
+;*  (at your option) any later version.
+;*
+;*  This program is distributed in the hope that it will be useful,
+;*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;*  GNU General Public License for more details.
+;*
+;*  You should have received a copy of the GNU General Public License
+;*  along with this program; if not, write to the Free Software
+;*  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;*
+;*  info@mp3ve.de
+;***********************************************************************
+
+;***********************************************************************
+;* $Id: supported_ata.txt,v 1.1 2002/02/24 11:58:06 dressler Exp $
+;***********************************************************************
+;*
+;*  Title           : Ata Support List
+;*  Version         : 1.5
+;*
+;*  Filename        : supported_ata.txt
+;*  Created         : 14.01.2001 by Marc Dressler
+;*  Last changed    : 23.02.2002 by Marc Dressler
+;*
+;*  Description     : list of supported ata devices
+;*
+;*  Homepage        : www.MP3ve.de
+;*                    www.uC-Elektronik.de
+;*                    www.Hardware-Schmiede.de	
+;*
+;***********************************************************************
+
+To use the current read function like DEV_ReadSector_CMD the connected drive
+must support LBA-Mode. CHS-Mode is not supported yet.
+
+Drive-Type	/Size      /Producer	  GV/Busy /Detect / LBA /MP3     /TOC     /Comment
+==========================================================================================================
+ST320430A	/20,4 GB   /Seagate	  10/ ok  / ok    / ok  / ?      / ?      /
+ST31220A	/1 GB	   /Seagate	  10/ ok  / ok    / ok  / ?      / ?      / 2)
+ST3243A		/200 MB	   /Seagate	  10/ ok  / ok    / fail/ -      / -      / 1)
+CFS210A		/200 MB	   /Conner	  10/ ok  / ok    / fail/ -      / -      / 1)
+CFS850A		/810MB	   /Conner	  10/ ok  / ok    / ok  / ?      / ?      /
+7540RQ		/540MB     /Maxtor	  10/ ok  / ok    / ok  / ?      / ?      /
+7120AT		/120MB	   /Maxtor	  10/ ok  / ok    / fail/ -      / -      / 1)
+ProDrive LPS	/245MB     /Quantum	  10/ ok  / fail  / ok  / ?      / ?      / 3) work well as slave only
+DTTA-351680	/16,8 GB   /IBM		  10/ fail/ -     / -   / -      / -      / 
+Fireball 1280AT / 1,2GB    /Quantum       15/ ok  / ok    / ok  / ok     / ?      / 
+==========================================================================================================
+ok     - working
+fail.  - failed, not working (yet?)
+?      - not tested
+1)     - drive don't support LBA-Mode
+2)     - drive wakes up to slowly from the  standby-mode (timeout)
+3)     - drive may be damage
+
+
+If "Busy" failed, all other functions will failed, too.
+
+Please report new drives to the support-area on the homepages listen in the header. 
+
+;*
+;* $Log: supported_ata.txt,v $
+;* Revision 1.1  2002/02/24 11:58:06  dressler
+;* initial checkin
+;*
