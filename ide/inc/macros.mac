@@ -1,0 +1,342 @@
+;***********************************************************************
+;*  MP3VE - Standalone MP3 Player
+;*  Copyright (C) 2000,2001,2002 Marc Dressler, Jens Funke,
+;*                               Thomas Gutzeit, Nils Steenbock
+;*
+;*  This program is free software; you can redistribute it and/or modify
+;*  it under the terms of the GNU General Public License as published by
+;*  the Free Software Foundation; either version 2 of the License, or
+;*  (at your option) any later version.
+;*
+;*  This program is distributed in the hope that it will be useful,
+;*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;*  GNU General Public License for more details.
+;*
+;*  You should have received a copy of the GNU General Public License
+;*  along with this program; if not, write to the Free Software
+;*  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;*
+;*  info@mp3ve.de
+;***********************************************************************
+
+;***********************************************************************
+;* $Id: macros.mac,v 1.1 2002/07/31 17:31:59 dressler Exp $
+;***********************************************************************
+;*
+;*  Title     	: Macros
+;*  Version     : 1.5
+;*
+;*  Filename    : macros.mac
+;*  Created     : 17.02.2000 by Jens Funke
+;*  Last changed: 23.12.2000 by Marc Dressler
+;*
+;*  Target-uC   : Atmel AVR AT90Sxxxx
+;*  Target-PCB  : all
+;*  Description : Macro definitions
+;*
+;*  Homepage    : www.MP3ve.de
+;*                www.uC-Elektronik.de
+;*                www.Hardware-Schmiede.de	
+;*
+;*  Uses        : -
+;*
+;***********************************************************************
+	ifndef macrosmac
+macrosmac	=	1
+
+		save
+		listing off
+
+                if       mompass=1
+                 message "Macro Definitons V1.5 (C) 2000 by Jens Funke"
+                endif
+
+;***********************************************************************
+;* Macro 	: SET_XPOINTER
+;*
+;* CREATED	: 23.04.2000 by Jens Funke
+;*
+;* LAST CHANGED : 23.04.2000 by Jens Funke
+;*
+;* DESCRIPTION  : Set X-Pointer
+;*
+;* INPUT        : Label of Pointer
+;*              
+;* OUTPUT       : -
+;*
+;***********************************************************************
+SET_XPOINTER	MACRO	pointer
+        ldi     XL,lo(pointer)       ;set Pointer
+        ldi     XH,hi(pointer)
+        ENDM
+
+;***********************************************************************
+;* Macro 	: SET_YPOINTER
+;*
+;* CREATED	: 23.04.2000 by Jens Funke
+;*
+;* LAST CHANGED : 23.04.2000 by Jens Funke
+;*
+;* DESCRIPTION  : Set Y-Pointer
+;*
+;* INPUT        : Label of Pointer
+;*              
+;* OUTPUT       : -
+;*
+;***********************************************************************
+SET_YPOINTER	MACRO	pointer
+        ldi     YL,lo(pointer)       ;set Pointer
+        ldi     YH,hi(pointer)
+        ENDM
+
+;***********************************************************************
+;* Macro 	: SET_ZPOINTER
+;*
+;* CREATED	: 23.04.2000 by Jens Funke
+;*
+;* LAST CHANGED : 23.04.2000 by Jens Funke
+;*
+;* DESCRIPTION  : Set Z-Pointer
+;*
+;* INPUT        : Label of Pointer
+;*              
+;* OUTPUT       : -
+;*
+;***********************************************************************
+SET_ZPOINTER	MACRO	pointer
+        ldi     ZL,lo(pointer)       ;set Pointer
+        ldi     ZH,hi(pointer)
+        ENDM
+
+;***********************************************************************
+;* Macro 	: SET_STACKPOINTER
+;*
+;* CREATED	: 23.04.2000 by Jens Funke
+;*
+;* LAST CHANGED : 23.04.2000 by Jens Funke
+;*
+;* DESCRIPTION  : Set the Stack Pointer
+;*
+;* INPUT        : index = IndexOffset (0-448)
+;*              
+;* OUTPUT       : -
+;*
+;***********************************************************************
+SET_STACKPOINTER	MACRO	index
+        ldi     temp1,lo(iramend-index)
+        out     SPL,temp1               ;init Stackpointer
+        ldi     temp1,hi(iramend-index)
+        out     SPH,temp1
+        ENDM
+
+;***********************************************************************
+;* Macro 	: SET_STACKPOINTER_TO_SRAM
+;*
+;* CREATED	: 30/11/2000 by Jens Funke
+;*
+;* LAST CHANGED : 30/11/2000 by Jens Funke
+;*
+;* DESCRIPTION  : Set the Stack Pointer to SRAM
+;*	ACHTUNG!  The stack will be filled from index to 0x0000
+;*		  Do not turn off the SRAM later! 	
+;*
+;* INPUT        : index = startaddress
+;*              
+;* OUTPUT       : -
+;*
+;***********************************************************************
+SET_STACKPOINTER_TO_SRAM	MACRO	index
+; first turn on the SRAM else the first 'rcall' will be the last
+	in      temp1,MCUCR
+	sbr     temp1,(1<<SRE)		;set SRE                
+	out     MCUCR,temp1		;enable external memory 
+; now set the stackpointer to SRAM 	
+        ldi     temp1,lo(index)
+        out     SPL,temp1               ;init Stackpointer
+        ldi     temp1,hi(index)
+        out     SPH,temp1
+        ENDM
+
+;***********************************************************************
+;* Macro 	: AUTOBYTEDATA
+;*
+;* CREATED	: 06.05.2000 by Marc Dressler
+;*
+;* LAST CHANGED : 28.08.2000 by Marc Dressler
+;*
+;* DESCRIPTION  : saves bytes as word (word)
+;*                *ATTENTION*
+;*		  on an odd count of bytes, you must add one dummy byte
+;*		  for correct function !
+;*
+;* INPUT        : byte - ONE byte
+;*
+;* OUTPUT       : data word
+;*
+;***********************************************************************
+bytecnt		eval	0		; initialize odd-even-flag
+
+AUTOBYTEDATA	MACRO	value
+		if	bytecnt=0	; first byte of word ?
+dataacc		eval	value		; then save
+		elseif
+		data	(dataacc<<8)|value	; else save as data-word
+		endif
+bytecnt		eval	1-bytecnt	; toggle odd/even-flag
+		ENDM
+
+;***********************************************************************
+;* Macro 	: TWOBYTEDATA
+;*
+;* CREATED	: 06.05.2000 by Marc Dressler
+;*
+;* LAST CHANGED : 28.08.2000 by Marc Dressler
+;*
+;* DESCRIPTION  : save byte1 and byte2 as one word
+;*
+;* INPUT        : byte1,byte2
+;*
+;* OUTPUT       : data word
+;*
+;***********************************************************************
+TWOBYTEDATA	MACRO	value1,value2
+		data	(value1<<8)|value2
+		ENDM
+
+;***********************************************************************
+;* Macro 	: CPIW
+;*
+;* CREATED	: 13.05.2000 by Jens Funke
+;*
+;* LAST CHANGED : 13.05.2000 by Jens Funke
+;*
+;* DESCRIPTION  : Compare with Immediate Word
+;*
+;* INPUT        : rd = Register (X,Y or Z)
+;*		  k = Immediate Word
+;*		  jmptrue = Label to jump to if True
+;*		  jmpfalse = Label to jmp to if False
+;*              
+;* OUTPUT       : -
+;*
+;***********************************************************************
+;CPIW	MACRO	rd, k, jmptrue, jmpfalse
+;	cpi	rdh,hi(k)
+;	brne	jmpfalse
+;	cpi	rdl,lo(k)
+;	brne	jmpfalse
+;	rjmp	jmptrue
+;	ENDM
+
+;***********************************************************************
+;* Macro 	: CPIW
+;*
+;* CREATED	: 13.05.2000 by Jens Funke
+;*
+;* LAST CHANGED : 13.05.2000 by Jens Funke
+;*
+;* DESCRIPTION  : Compare with Immediate Word and jump to jmpfalse if not equal
+;*
+;* INPUT        : rdl = Low Register (XL,YL or ZL)
+;*		  rdh = High Register (XH,YH or ZH)
+;*		  k = Immediate Word
+;*		  jmpfalse = Label to jmp to if False
+;*              
+;* OUTPUT       : -
+;*
+;***********************************************************************
+CPIW	MACRO	rdl, rdh, k, jmpfalse
+	cpi	rdh,hi(k)
+	brne	jmpfalse
+	cpi	rdl,lo(k)
+	brne	jmpfalse
+	ENDM
+
+;***********************************************************************
+;* Macro 	: CPRW
+;*
+;* CREATED	: 14.05.2000 by Jens Funke
+;*
+;* LAST CHANGED : 14.05.2000 by Jens Funke
+;*
+;* DESCRIPTION  : Compare two word registers and jump to jmpfalse if not equal
+;*
+;* INPUT        : rdl1 = Low Register (XL,YL or ZL)
+;*		  rdh1 = High Register (XH,YH or ZH)
+;*		  rdl2 = Low Register (XL,YL or ZL)
+;*		  rdh2 = High Register (XH,YH or ZH)
+;*		  jmpfalse = Label to jmp to
+;*              
+;* OUTPUT       : -
+;*
+;***********************************************************************
+CPRW	MACRO	rdl1, rdh1, rdl2, rdh2, jmpfalse
+	cp	rdh1,rdh2
+	brne	jmpfalse
+	cp	rdl1,rdl2
+	brne	jmpfalse
+	ENDM
+
+
+;***********************************************************************
+;* Macro 	: SBPORT
+;*
+;* CREATED	: 07/07/2000 by Jens Funke
+;*
+;* LAST CHANGED : 07/07/2000 by Jens Funke
+;*
+;* DESCRIPTION  : Set the bit BIT in port PORT
+;*
+;* INPUT        : PORT = Port Address
+;*		  BIT  = Bit to set to
+;*		  reg  = tempreg
+;*              
+;* OUTPUT       : -
+;*
+;***********************************************************************
+SBPORT	MACRO	PORT, BIT, reg
+	push	reg
+	in	reg,PORT
+	sbr	reg,(1<<BIT)	; Set BIT bit in register
+	out	PORT,reg
+	pop	reg
+	ENDM
+
+;***********************************************************************
+;* Macro 	: CBPORT
+;*
+;* CREATED	: 07/07/2000 by Jens Funke
+;*
+;* LAST CHANGED : 07/07/2000 by Jens Funke
+;*
+;* DESCRIPTION  : Clear the bit BIT in port PORT
+;*
+;* INPUT        : PORT = Port Address
+;*		  BIT  = Bit to clear to
+;*		  reg  = tempreg
+;*              
+;* OUTPUT       : -
+;*
+;***********************************************************************
+CBPORT	MACRO	PORT, BIT, reg
+	push	reg
+	in	reg,PORT
+	cbr	reg,(1<<BIT)	; Clear BIT bit in register
+	out	PORT,reg
+	pop	reg
+	ENDM
+
+
+	
+;***********************************************************************
+		listing on
+		restore
+
+	endif
+
+;*
+;* $Log: macros.mac,v $
+;* Revision 1.1  2002/07/31 17:31:59  dressler
+;* initial checkin
+;*

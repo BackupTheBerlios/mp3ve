@@ -1,0 +1,99 @@
+;***********************************************************************
+;*  MP3VE - Standalone MP3 Player
+;*  Copyright (C) 2000,2001,2002 Marc Dressler, Jens Funke,
+;*                               Thomas Gutzeit, Nils Steenbock
+;*
+;*  This program is free software; you can redistribute it and/or modify
+;*  it under the terms of the GNU General Public License as published by
+;*  the Free Software Foundation; either version 2 of the License, or
+;*  (at your option) any later version.
+;*
+;*  This program is distributed in the hope that it will be useful,
+;*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;*  GNU General Public License for more details.
+;*
+;*  You should have received a copy of the GNU General Public License
+;*  along with this program; if not, write to the Free Software
+;*  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;*
+;*  info@mp3ve.de
+;***********************************************************************
+
+;***********************************************************************
+;* $Id: ata.mac,v 1.1 2002/07/31 17:31:59 dressler Exp $
+;***********************************************************************
+;*
+;*  Title     	: ATA Macros
+;*  Version     : 1.5
+;*				
+;*  Filename    : ata.mac
+;*  Created     : 29/11/2000 by Jens Funke
+;*  Last changed: 21.01.2001 by Marc Dressler
+;*	
+;*  Target-uC   : Atmel AVR AT90Sxxxx
+;*  Target-PCB  : MP3IDE V1.5
+;*  Description : -
+;*
+;*  Homepage    : www.MP3ve.de
+;*                www.uC-Elektronik.de
+;*                www.Hardware-Schmiede.de	
+;*
+;*  Uses        : -
+;*
+;***********************************************************************
+	ifndef atamac
+atamac	=	1
+
+                if      MOMPASS=1
+                 message "ATA Command MACROS V1.5 (C) 2000 by Jens Funke"
+		endif
+
+
+;***********************************************************************
+;* Macro 	: ATA_TST_DRQ
+;*              
+;* CREATED	: 29/11/2000 by Jens Funke
+;*              
+;* LAST CHANGED : 29/11/2000 by Jens Funke
+;*              
+;* DESCRIPTION  : Test DRQ and jump to jmpfalse if DRQ=0
+;*              
+;* INPUT        : Lable to jump to if DRQ=0
+;*		  tmpreg
+;*              
+;***********************************************************************
+ATA_TST_DRQ	MACRO jmpfalse, tmpreg
+        lds     tmpreg,ATA_RAStatus      ;read StatusByte
+	sbrs    tmpreg,ATA_DRQ
+	rjmp	jmpfalse
+	ENDM
+
+;***********************************************************************
+;* Macro 	: ATA_TST_BSY
+;*              
+;* CREATED	: 29/11/2000 by Jens Funke
+;*              
+;* LAST CHANGED : 29/11/2000 by Jens Funke
+;*              
+;* DESCRIPTION  : Test BSY and jump to jmpfalse if BSY=0
+;*              
+;* INPUT        : Lable to jump to if BSY=0
+;*		  tmpreg  	
+;*              
+;***********************************************************************
+ATA_TST_BSY	MACRO jmpfalse, tmpreg
+        lds     tmpreg,ATA_RAStatus      ;read StatusByte
+	sbrs    tmpreg,ATA_BSY
+	rjmp	jmpfalse
+	ENDM
+
+;***********************************************************************
+	
+	endif
+
+;*
+;* $Log: ata.mac,v $
+;* Revision 1.1  2002/07/31 17:31:59  dressler
+;* initial checkin
+;*

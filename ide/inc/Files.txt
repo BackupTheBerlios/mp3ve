@@ -1,0 +1,141 @@
+;***********************************************************************
+;*  MP3VE - Standalone MP3 Player
+;*  Copyright (C) 2000,2001,2002 Marc Dressler, Jens Funke,
+;*                               Thomas Gutzeit, Nils Steenbock
+;*
+;*  This program is free software; you can redistribute it and/or modify
+;*  it under the terms of the GNU General Public License as published by
+;*  the Free Software Foundation; either version 2 of the License, or
+;*  (at your option) any later version.
+;*
+;*  This program is distributed in the hope that it will be useful,
+;*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;*  GNU General Public License for more details.
+;*
+;*  You should have received a copy of the GNU General Public License
+;*  along with this program; if not, write to the Free Software
+;*  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;*
+;*  info@mp3ve.de
+;***********************************************************************
+
+;***********************************************************************
+;* $Id: Files.txt,v 1.1 2002/07/31 17:31:59 dressler Exp $
+;***********************************************************************
+;*
+;*  Title           : Files.txt
+;*  Version         : 1.5
+;*
+;*  Filename        : Files.txt
+;*  Created         : 06.05.2000 by Marc Dressler
+;*  Last changed    : 23.12.2000 by Jens Funke
+;*
+;*  Target-uC       : -
+;*  Target-PCB      : -
+;*  Description     : -
+;*
+;*  Homepage        : www.MP3ve.de
+;*                    www.uC-Elektronik.de
+;*                    www.Hardware-Schmiede.de	
+;*
+;*  Uses            : -
+;*
+;***********************************************************************
+
+
+CPU-Abhaengige Files
+====================
+regavr.inc		- Definition file for the AS
+8515def.inc		- Register-Erweiterungen auf den Standard von ATMEL
+register.inc		- unsere private Registerbenennung
+
+
+Allgemeine Files
+================
+convert.inc		- funktions to convert number types 
+bitfuncs.inc		- Funktionserweiterung von AS
+delay.inc		- Allgemeine Pausefunktionen
+example.inc		- Unser Standard-Fileformat
+macro.mac		- usefull macros
+
+
+Spezielle Funktionen
+====================
+i2c.inc			- I2C Basisfunktionen
+spi.inc			- Serielle SPI Schnittstelle
+uart.inc		- Serielle UART Schnittstelle
+uartext.inc		- Uart Erweiterungen
+lcd.inc			- LC-Display (mit HDxxx Chip)
+lpt.inc			- Druckerschnittstelle (Eingang)
+timer.inc		- Timer/Counter functions
+watch.inc		- Watchdog functions 
+
+
+MP3
+===
+mp3.inc			- Allgemeine MP3 Funktionen (Chip-Unabhaengig)
+mas.inc			- Spezielle MP3 Funktionen fuer MAS3507D
+sta.inc			- Spezielle MP3 Funktionen fuer STA013
+
+
+tocj.inc		-
+rcp.inc			-
+
+
+Speicher
+========
+eeprom.inc		- functions for access to the internal EEPROMs
+xram.inc		- Externen Speicher aktivieren
+memory32.inc		- ExRAM check for a 32KByte SRAM 
+memory64.inc		- ExRAM check for a 64KByte SRAM 
+
+
+Layer Model for Devices
+=======================
+
+ ---------------------------------------------------
+|   Application Layer (funktions like Read_Toc)     |	
+ ---------------------------------------------------
+|		Highlevel Device Layer		    |
+ ---------------------------------------------------
+|		Lowlevel Device Layer		    |
+ ---------------------------------------------------
+|   Highlevel ATAPI	|     Highlevel ATA  	    |
+ ---------------------------------------------------
+|   Lowlevel ATAPI	|     Lowlevel ATA 	    |
+ ---------------------------------------------------
+|		ATA/ATAPI Devices		    |
+ ---------------------------------------------------
+
+Device
+=========
+devdef.inc		- device definitions like global variables and device bits
+dev.inc			- Highlevel functions for devices to allow Master-Slave funktions
+devser.inc		- Lowlevel functions for Device functions
+devdebug.inc		- Debug functions for devices
+
+ATAPI
+=========
+atapidef.inc		- ATAPI-Interface address definitions
+atapi.inc		- Highlevel functions Definitions 
+atapiser.inc		- Lowlevel functions for ATAPI functions
+atapi.mac		- Packet-Command functions
+
+
+ATA
+=========
+atadef.inc		- ATA-Interface address definitions
+ata.inc			- Lowlevel functions for ATA functions
+ataser.inc		- Lowlevel functions for ATA functions 
+
+Misc
+========
+Files.txt		- this File
+ReadMe.txt		- user information
+
+
+;* $Log: Files.txt,v $
+;* Revision 1.1  2002/07/31 17:31:59  dressler
+;* initial checkin
+;*

@@ -1,0 +1,137 @@
+;***********************************************************************
+;*  MP3VE - Standalone MP3 Player
+;*  Copyright (C) 2000,2001,2002 Marc Dressler, Jens Funke,
+;*                               Thomas Gutzeit, Nils Steenbock
+;*
+;*  This program is free software; you can redistribute it and/or modify
+;*  it under the terms of the GNU General Public License as published by
+;*  the Free Software Foundation; either version 2 of the License, or
+;*  (at your option) any later version.
+;*
+;*  This program is distributed in the hope that it will be useful,
+;*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;*  GNU General Public License for more details.
+;*
+;*  You should have received a copy of the GNU General Public License
+;*  along with this program; if not, write to the Free Software
+;*  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;*
+;*  info@mp3ve.de
+;***********************************************************************
+
+;***********************************************************************
+;* $Id: ataser.mac,v 1.1 2002/07/31 17:31:59 dressler Exp $
+;***********************************************************************
+;*
+;*  Title     	: ATA Macros
+;*  Version     : 1.5
+;*				
+;*  Filename    : ata.mac.asm
+;*  Created     : 29/11/2000 by Jens Funke
+;*  Last changed: 13.12.2000 by Marc Dressler
+;*	
+;*  Target-uC   : Atmel AVR AT90Sxxxx
+;*  Target-PCB  : MP3IDE V1.5
+;*  Description : -
+;*
+;*  Homepage    : www.uC-Elektronik.de
+;*                www.Hardware-Schmiede.de	
+;*
+;*  Uses        : -
+;*
+;***********************************************************************
+	ifndef atasermac
+atamac	=	1
+
+                if      MOMPASS=1
+                 message "V1.5 (C) 2000 by Jens Funke"
+		endif
+
+;***********************************************************************
+;* MACRO        : ATA_INIT_READ_MP3
+;*              
+;* CREATED      : 01.07.2000 by Jens Funke
+;*              
+;* LAST CHANGED : 01.07.2000 by Jens Funke
+;*              
+;* DESCRIPTION  : Read x Bytes from IDE
+;*              
+;* INPUT        : reg1 = tempreg
+;*		  Mp3reg = spezial Register to save the Status
+;*		  Mp3bit = Bit to save the Status
+;*                LBA0 = LBA0
+;*                LBA1 = LBA1
+;*              
+;***********************************************************************
+
+ATA_INIT_READ_MP3	macro reg1, MP3reg, MP3bit, LBA0, LBA1
+
+ATA_INIT_READ_MP3_Wait_NBSY: 
+        lds     reg1,IDE_RAStatus      	; read StatusByte 
+	sbrc	reg1,ATA_BSY		; Skip if BSY=0
+        rjmp    ATA_INIT_READ_MP3_Wait_NBSY
+        
+        ldi     reg1,0x01		; we need 1 sectors always (512 Bytes)
+        sts     IDE_RWASecCount,temp1   
+        sts     IDE_RWASecNo,LBA0	; LBA 0
+        sts     IDE_RWACylLow,LBA1	; LBA 1 
+	clr	reg1
+        sts     IDE_RWACylHigh,reg1	; LBA 2 
+
+	ldi	reg1,0b11100000		; set bit 7-5 (LBA enabled)
+        sts     IDE_RWADrvSel,reg1	; LBA 3 
+        ldi     reg1,IDE_ReadSecLoop   ; write ReadCommand to IDE
+        sts     IDE_WACommand,reg1
+
+; if Disk Seek Completed and BSY=0 we can start to read from the buffer
+ATA_Init_Read_Mp3_Next:
+        lds     reg1,IDE_RAStatus      ;read StatusByte 
+	sbrs	reg1,ATA_DSC		;Skip if DSC=1
+        rjmp    ATA_Init_Read_Mp3_Next
+	sbrc	reg1,ATA_BSY		;Skip if BSY=0
+        rjmp    ATA_Init_Read_Mp3_Next
+	set				; Set T if Buffer not empty
+	bld	Mp3reg,Mp3bit		; load T to Mp3reg at bit Mp3bit
+	endm
+
+;***********************************************************************
+;* Macro 	: ATA_READ_WORD
+;*              
+;* CREATED	: 01.07.2000 by Jens Funke
+;*              
+;* LAST CHANGED : 01.07.2000 by Jens Funke
+;*              
+;* DESCRIPTION  : Reads one word from Buffer
+;*		  Must initialized by ATA_Init_Read_Mp3
+;*              
+;* INPUT        : HighByte = DataHigh (output)
+;*		  LowByte = DataLow (output)
+;*		  Mp3reg = spezial Register to save the Status
+;*		  Mp3bit = Bit to save the Status
+;*		  reg1 = tempreg
+;*              
+;***********************************************************************
+ATA_READ_WORD	macro HighByte, LowByte, Mp3reg, Mp3bit, reg1
+        lds     reg1,IDE_RAStatus      	;read StatusByte 
+	sbrs	reg1,ATA_DRQ	       	;Skip if DRQ=1
+        rjmp    ATA_Read_Word_NDRQ      ;End if DRQ=0 (no more data to read)
+
+        lds     HighByte,IDE_RWADataHigh   ;Read Data Register
+        lds     LowByte,IDE_RWADataLow
+	rjmp	ATA_Read_Word_END
+ATA_Read_Word_NDRQ:
+	clt				; T=DRQ=0
+	bld	Mp3reg,Mp3bit		; load T to Mp3reg at bit Mp3bit
+ATA_Read_Word_END:
+	endm	
+
+
+;***********************************************************************
+	endif
+
+;*
+;* $Log: ataser.mac,v $
+;* Revision 1.1  2002/07/31 17:31:59  dressler
+;* initial checkin
+;*

@@ -1,0 +1,236 @@
+;***********************************************************************
+;*  MP3VE - Standalone MP3 Player
+;*  Copyright (C) 2000,2001,2002 Marc Dressler, Jens Funke,
+;*                               Thomas Gutzeit, Nils Steenbock
+;*
+;*  This program is free software; you can redistribute it and/or modify
+;*  it under the terms of the GNU General Public License as published by
+;*  the Free Software Foundation; either version 2 of the License, or
+;*  (at your option) any later version.
+;*
+;*  This program is distributed in the hope that it will be useful,
+;*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;*  GNU General Public License for more details.
+;*
+;*  You should have received a copy of the GNU General Public License
+;*  along with this program; if not, write to the Free Software
+;*  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;*
+;*  info@mp3ve.de
+;***********************************************************************
+
+;***********************************************************************
+;* $Id: uart.mac,v 1.1 2002/07/31 17:31:59 dressler Exp $
+;***********************************************************************
+;*
+;*  Title     	: UART_MACROS
+;*  Version     : 1.5
+;*				
+;*  Filename    : uart.mac
+;*  Created     : 12.05.2000 by Jens Funke
+;*  Last changed: 13.12.2000 by Marc Dressler
+;*	
+;*  Target-uC   : Atmel AVR AT90Sxxxx
+;*  Target-PCB  : all
+;*  Description : UART MACROS
+;*
+;*  Homepage    : www.MP3ve.de
+;*                www.uC-Elektronik.de
+;*                www.Hardware-Schmiede.de	
+;*
+;*  Uses        : uart.inc
+;*
+;***********************************************************************
+	ifndef uartmac
+uartmac	=	1
+
+		save
+		listing off
+
+                if       mompass=1
+                 message "UART MACROS V1.5 (C) 2000 by Jens Funke"
+                endif
+
+;***********************************************************************
+;* Macro 	: UART_PRINT_MSG
+;*              
+;* CREATED	: 23.04.2000 by Jens Funke
+;*              
+;* LAST CHANGED : 23.04.2000 by Jens Funke
+;*              
+;* DESCRIPTION  : Print the Message msg to UART
+;*              
+;* INPUT        : msg = Lable of the Message
+;*              
+;* OUTPUT       : -
+;*              
+;***********************************************************************
+UART_PRINT_MSG	MACRO	msg
+	push	ZL
+	push	ZH
+        ldi     zl,lo(msg*2)
+        ldi     zh,hi(msg*2)
+        rcall   UART_WriteTxt           ;send message to serial Port
+	pop	ZH
+	pop	ZL
+	ENDM
+
+;***********************************************************************
+;* Macro 	: UART_PRINTL
+;*              
+;* CREATED	: 11.05.2000 by Jens Funke
+;*              
+;* LAST CHANGED : 11.05.2000 by Jens Funke
+;*              
+;* DESCRIPTION  : Define Text in the Codesegment and print Text to UART.
+;*                Last characters are LF+CR
+;*
+;* INPUT        : Text
+;*              
+;* OUTPUT       : -
+;*              
+;***********************************************************************
+UART_PRINTL	MACRO	text
+	rjmp	JumpOver
+TxtLable:	DATA	"text \n\r",0
+JumpOver:
+	push	ZL
+	push	ZH
+        ldi     zl,lo(TxtLable*2)
+        ldi     zh,hi(TxtLable*2)
+        rcall   UART_WriteTxt           ;send message to serial Port
+	pop	ZH
+	pop	ZL
+	ENDM
+
+;***********************************************************************
+;* Macro 	: UART_PRINT
+;*              
+;* CREATED	: 11.05.2000 by Jens Funke
+;*              
+;* LAST CHANGED : 11.05.2000 by Jens Funke
+;*              
+;* DESCRIPTION  : Define Text in the Codesegment and print Text to UART
+;*              
+;* INPUT        : Text
+;*              
+;* OUTPUT       : -
+;*              
+;***********************************************************************
+UART_PRINT	MACRO	text
+	rjmp	JumpOver
+TxtLable:	DATA	text,0
+JumpOver:
+	push	ZL
+	push	ZH
+        ldi     zl,lo(TxtLable*2)
+        ldi     zh,hi(TxtLable*2)
+        rcall   UART_WriteTxt           ;send message to serial Port
+	pop	ZH
+	pop	ZL
+	ENDM
+
+;***********************************************************************
+;* Macro 	: UART_PRINT_VALUE
+;*              
+;* CREATED	: 04.05.2000 by Jens Funke
+;*              
+;* LAST CHANGED : 04.05.2000 by Jens Funke
+;*              
+;* DESCRIPTION  : Print the Value of register to UART
+;*              
+;* INPUT        : msg = Lable of the Message
+;*              
+;* OUTPUT       : -
+;*              
+;***********************************************************************
+UART_PRINT_VALUE	MACRO	register
+	Print_Msg2UART TxATAPI_register
+	rcall	ATAPI_Read_register
+	rcall	ATAPI_Print_register
+	ENDM
+
+
+;***********************************************************************
+;* Macro 	: UART_READ_BYTE
+;*              
+;* CREATED	: 12/08/2000 by Jens Funke
+;*              
+;* LAST CHANGED : 12/08/2000 by Jens Funke
+;*              
+;* DESCRIPTION  : Print Lable and read var from UART
+;*              
+;* INPUT        : Lable - Printet Lable
+;*		  var	- input variable
+;*		  reg	- tempreg
+;*              
+;* OUTPUT       : -
+;*              
+;***********************************************************************
+UART_READ_BYTE	macro	Lable, var, reg 
+	push	param1
+	push	param2
+	UART_PRINT "\n\r Lable : "
+        rcall   UART_Read              ; read Hex from UART
+        mov     reg,param1
+        rcall   UART_Read
+        mov     param2,param1
+        mov     param1,reg
+        rcall   CONV_Ascii2Hex
+	sts 	var,param1
+	pop	param2
+	pop	param1
+	endm
+
+;***********************************************************************
+;* Macro 	: UART_READ_WORD
+;*              
+;* CREATED	: 12/08/2000 by Jens Funke
+;*              
+;* LAST CHANGED : 12/08/2000 by Jens Funke
+;*              
+;* DESCRIPTION  : Print Lable and read var from UART
+;*              
+;* INPUT        : Lable - Printet Lable
+;*		  var1	- input variable1
+;*		  var2	- input variable2
+;*		  reg	- tempreg
+;*              
+;* OUTPUT       : -
+;*              
+;***********************************************************************
+UART_READ_WORD	macro	Lable, var1, var2, reg 
+		rcall	UART_WriteCRLF
+	push	param1
+	push	param2
+	UART_PRINT Lable
+        rcall   UART_Read              ; read Hex from UART
+        mov     reg,param1
+        rcall   UART_Read
+        mov     param2,param1
+        mov     param1,reg
+        rcall   CONV_Ascii2Hex
+	sts 	var1,param1
+
+	rcall   UART_Read              ; read Hex from UART
+        mov     reg,param1
+        rcall   UART_Read
+        mov     param2,param1
+        mov     param1,reg
+        rcall   CONV_Ascii2Hex
+	sts 	var2,param1
+
+	pop	param2
+	pop	param1
+	endm
+	
+;***********************************************************************	
+		listing on
+		restore
+	endif
+;*
+;* $Log: uart.mac,v $
+;* Revision 1.1  2002/07/31 17:31:59  dressler
+;* initial checkin
+;*

@@ -1,0 +1,12 @@
+rm mp3veide.lst
+rm mp3veide.p
+rm mp3veide.hex
+rm mp3veide.bin
+rm burn-ide.hex
+
+asl -x -L -i ../inc/ mp3veide.asm
+
+p2hex -F intel mp3veide.p
+p2bin mp3veide.p
+
+cp mp3veide.hex burn-ide.hex

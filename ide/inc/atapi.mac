@@ -1,0 +1,745 @@
+;***********************************************************************
+;*  MP3VE - Standalone MP3 Player
+;*  Copyright (C) 2000,2001,2002 Marc Dressler, Jens Funke,
+;*                               Thomas Gutzeit, Nils Steenbock
+;*
+;*  This program is free software; you can redistribute it and/or modify
+;*  it under the terms of the GNU General Public License as published by
+;*  the Free Software Foundation; either version 2 of the License, or
+;*  (at your option) any later version.
+;*
+;*  This program is distributed in the hope that it will be useful,
+;*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;*  GNU General Public License for more details.
+;*
+;*  You should have received a copy of the GNU General Public License
+;*  along with this program; if not, write to the Free Software
+;*  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;*
+;*  info@mp3ve.de
+;***********************************************************************
+
+;***********************************************************************
+;* $Id: atapi.mac,v 1.1 2002/07/31 17:31:59 dressler Exp $
+;***********************************************************************
+;*
+;*  Title     	: ATAPI Command MACROS
+;*  Version     : 1.5
+;*
+;*  Filename    : packet.mac
+;*  Created     : 13.05.2000 by Jens Funke
+;*  Last changed: 13.12.2000 by Marc Dressler
+;*
+;*  Target-uC   : Atmel AVR AT90Sxxxx
+;*  Target-PCB  : MP3IDE V1.5
+;*  Description : -
+;*
+;*  Homepage    : www.MP3ve.de
+;*                www.uC-Elektronik.de
+;*                www.Hardware-Schmiede.de	
+;*
+;*  Uses        : atapi.inc
+;*
+;***********************************************************************
+	ifndef atapimac
+atapimac	=	1
+
+                if      MOMPASS=1
+                 message "ATAPI Command MACROS V1.5 (C) 2000 by Jens Funke"
+		endif
+
+;***********************************************************************
+;* Macro 	: ATAPI_SEND_REQ_SENSE
+;*
+;* CREATED	: 13.05.2000 by Jens Funke
+;*
+;* LAST CHANGED : 13.05.2000 by Jens Funke
+;*
+;* DESCRIPTION  : Send ReqSense to the IDE-Interface
+;*
+;* INPUT        : AllocLength	= Length of the returned sense data
+;*		  reg1		= tempreg1
+;*		  reg2		= tempreg2
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_SEND_REQSENSE	MACRO	AllocLength, reg1, reg2
+	clr	reg2
+;The order of HighByte and LowByte is importent
+
+	sts	ATAPI_RWADataHigh,reg2	; Byte1
+        ldi	reg1,ATAPI_ReqSense	; Command
+	sts	ATAPI_RWADataLow,reg1	; Byte0
+
+	sts	ATAPI_RWADataHigh,reg2	; Byte3
+	sts	ATAPI_RWADataLow,reg2	; Byte2
+
+	sts	ATAPI_RWADataHigh,reg2	; Byte5
+	sts	ATAPI_RWADataLow,AllocLength	; AllocLength
+
+	sts	ATAPI_RWADataHigh,reg2	; Byte7
+	sts	ATAPI_RWADataLow,reg2	; Byte6
+
+	sts	ATAPI_RWADataHigh,reg2	; Byte9
+	sts	ATAPI_RWADataLow,reg2	; Byte8
+
+	sts	ATAPI_RWADataHigh,reg2	; Byte11
+	sts	ATAPI_RWADataLow,reg2	; Byte10
+	ENDM
+
+;***********************************************************************
+;* Macro 	: ATAPI_SEND_STARTSTOP
+;*
+;* CREATED	: 13.05.2000 by Jens Funke
+;*
+;* LAST CHANGED	: 13.05.2000 by Jens Funke
+;*
+;* DESCRIPTION  : Send the Start/Stop Command to the IDE-Interface
+;*
+;* INPUT        : Operation: ATAPI_Stop_Disc	= Stop;
+;*			     ATAPI_Start_Disc	= Start the Disc and read the TOC
+;*			     ATAPI_Eject_Disc	= Eject the Disc if possible
+;*			     ATAPI_Load_Disc	= Load the Disc (Close Tray)
+;*		  reg1		= tempreg1
+;*		  reg2		= tempreg2
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_SEND_STARTSTOP	MACRO	Operation, reg1, reg2
+	clr	reg2
+;The order of HighByte and LowByte is importent
+	sts	ATAPI_RWADataHigh,reg2	; Byte1
+        ldi	reg1,ATAPI_StartStop	; Packet Command
+	sts	ATAPI_RWADataLow,reg1	; Byte0
+
+	sts	ATAPI_RWADataHigh,reg2	; Byte3
+	sts	ATAPI_RWADataLow,reg2	; Byte2
+
+	sts	ATAPI_RWADataHigh,reg2	; Byte5
+	sts	ATAPI_RWADataLow,Operation	; Operation
+
+	sts	ATAPI_RWADataHigh,reg2	; Byte7
+	sts	ATAPI_RWADataLow,reg2	; Byte6
+
+	sts	ATAPI_RWADataHigh,reg2	; Byte9
+	sts	ATAPI_RWADataLow,reg2	; Byte8
+
+	sts	ATAPI_RWADataHigh,reg2	; Byte11
+	sts	ATAPI_RWADataLow,reg2 	; Byte10
+	ENDM
+
+;***********************************************************************
+;* Macro 	: ATAPI_SEND_READ10
+;*
+;* CREATED	: 13.05.2000 by Jens Funke
+;*
+;* LAST CHANGED : 13.05.2000 by Jens Funke
+;*
+;* DESCRIPTION  : Send the Read(10) Command to the IDE-Interface
+;*
+;* INPUT        : LBA0		= Logical Block Address Bit 0-7
+;*		  LBA1		= 	"	        Bit 8-15
+;*		  LBA2		= 	"		Bit 16-23
+;*		  LBA3		= 	"		Bit 24-31
+;*		  TLength0	= Transfer Length  	Bit 0-7
+;*		  TLength1	=	"		Bit 8-15
+;*		  reg1		= tempreg1
+;*		  reg2		= tempreg2
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_SEND_READ10	MACRO	LBA3, LBA2, LBA1, LBA0, TLength1, TLength0, reg1, reg2
+	clr	reg2
+;The order of HighByte and LowByte is importent
+	sts	ATAPI_RWADataHigh,reg2		; Byte1
+        ldi	reg1,ATAPI_Read10		; Packet Command
+	sts	ATAPI_RWADataLow,reg1		; Byte0
+
+	sts	ATAPI_RWADataHigh,LBA2		; Logical Block Address2
+	sts	ATAPI_RWADataLow,LBA3		; Logical Block Address3 (MSB)
+
+	sts	ATAPI_RWADataHigh,LBA0		; Logical Block Address0 (LSB)
+	sts	ATAPI_RWADataLow,LBA1		; Logical Block Address1
+
+	sts	ATAPI_RWADataHigh,TLength1	; Transfer Length1 (MSB)
+	sts	ATAPI_RWADataLow,reg2		; Byte6
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte9
+	sts	ATAPI_RWADataLow,TLength0	; Transfer Length0 (LSB)
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte11
+	sts	ATAPI_RWADataLow,reg2		; Byte10
+	ENDM
+
+
+;***********************************************************************
+;* Macro 	: ATAPI_TEST_UNIT_READY
+;*
+;* CREATED	: 08/07/2000 by Jens Funke
+;*
+;* LAST CHANGED : 08/07/2000 by Jens Funke
+;*
+;* DESCRIPTION  : Send the Test_Unit_Ready Command to the IDE-Interface
+;*
+;* INPUT        : reg	= tempreg
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_TEST_UNIT_READY	MACRO	reg
+	clr	reg
+;The order of HighByte and LowByte is importent
+	sts	ATAPI_RWADataHigh,reg		; Byte1
+	sts	ATAPI_RWADataLow,reg		; Test_Unit_Ready Command
+
+	sts	ATAPI_RWADataHigh,reg		; Byte3
+	sts	ATAPI_RWADataLow,reg		; Byte2
+
+	sts	ATAPI_RWADataHigh,reg		; Byte5
+	sts	ATAPI_RWADataLow,reg		; Byte4
+
+	sts	ATAPI_RWADataHigh,reg		; Byte7
+	sts	ATAPI_RWADataLow,reg		; Byte6
+
+	sts	ATAPI_RWADataHigh,reg		; Byte9
+	sts	ATAPI_RWADataLow,reg		; Byte8
+
+	sts	ATAPI_RWADataHigh,reg		; Byte11
+	sts	ATAPI_RWADataLow,reg		; Byte10
+	ENDM
+
+
+;***********************************************************************
+;* Macro 	: ATAPI_INQUIRY
+;*
+;* CREATED	: 09/07/2000 by Jens Funke
+;*
+;* LAST CHANGED : 09/07/2000 by Jens Funke
+;*
+;* DESCRIPTION  : Send the ATAPI_Inquiry Command to the IDE-Interface
+;*
+;* INPUT        : AllocLenght	= Allocation Lenght
+;*		  reg1		= tempreg1
+;*		  reg2		= tempreg2
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_INQUIRY	MACRO	AllocLenght, reg1, reg2
+	clr	reg1
+;The order of HighByte and LowByte is importent
+	sts	ATAPI_RWADataHigh,reg1		; Byte1
+	ldi	reg2,ATAPI_Inquiry
+	sts	ATAPI_RWADataLow,reg2		; ATAPI_Inquiry Command
+
+	sts	ATAPI_RWADataHigh,reg1		; Byte3
+	sts	ATAPI_RWADataLow,reg1		; Byte2
+
+	sts	ATAPI_RWADataHigh,reg1		; Byte5
+	sts	ATAPI_RWADataLow,AllocLenght	; Allocation Lenght
+
+	sts	ATAPI_RWADataHigh,reg1		; Byte7
+	sts	ATAPI_RWADataLow,reg1		; Byte6
+
+	sts	ATAPI_RWADataHigh,reg1		; Byte9
+	sts	ATAPI_RWADataLow,reg1		; Byte8
+
+	sts	ATAPI_RWADataHigh,reg1		; Byte11
+	sts	ATAPI_RWADataLow,reg1		; Byte10
+	ENDM
+
+
+;***********************************************************************
+;* Macro 	: ATAPI_SET_CD_SPEED
+;*
+;* CREATED	: 09/07/2000 by Jens Funke
+;*
+;* LAST CHANGED : 09/07/2000 by Jens Funke
+;*
+;* DESCRIPTION  : Execute Set CD Speed Command
+;*
+;* INPUT        : ReadMSB	= Read Drive Speed in Kbyte/Second (MSB)
+;*		  ReadLSB	= Read Drive Speed in Kbyte/Second (LSB)
+;*		  reg1		= tempreg1
+;*		  reg2		= tempreg2
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_SET_CD_SPEED	MACRO ReadMSB, ReadLSB, reg1, reg2
+	clr	reg2
+;The order of HighByte and LowByte is importent
+	sts	ATAPI_RWADataHigh,reg2		; Byte1
+	ldi	reg1,ATAPI_SetSpeed
+	sts	ATAPI_RWADataLow,reg1		; Set CD Speed Command
+
+	sts	ATAPI_RWADataHigh,ReadLSB	; Read Drive Speed in Kbyte/Second (LSB)
+	sts	ATAPI_RWADataLow,ReadMSB	; Read Drive Speed in Kbyte/Second (MSB)
+
+	sts	ATAPI_RWADataHigh,ReadLSB	; Byte5
+	sts	ATAPI_RWADataLow,ReadMSB	; Byte4
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte7
+	sts	ATAPI_RWADataLow,reg2		; Byte6
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte9
+	sts	ATAPI_RWADataLow,reg2		; Byte8
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte11
+	sts	ATAPI_RWADataLow,reg2		; Byte10
+	ENDM
+
+
+;***********************************************************************
+;* Macro 	: ATAPI_PLAY_AUDIO
+;*
+;* CREATED	: 09/07/2000 by Jens Funke
+;*
+;* LAST CHANGED : 09/07/2000 by Jens Funke
+;*
+;* DESCRIPTION  : Send the Play Audio Command to the IDE-Interface
+;*
+;* INPUT        : LBA3		= Logical Block Address (MSB)
+;*		  LBA2		= Logical Block Address
+;*		  LBA1		= Logical Block Address
+;*		  LBA0		= Logical Block Address (LSB)
+;*		  LenghtMSB	= Transfer Lenght (MSB)
+;*		  LenghtLSB	= Transfer Lenght (LSB)
+;*		  reg1		= tempreg1
+;*		  reg2		= tempreg2
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_PLAY_AUDIO	MACRO LBA3, LBA2, LBA1, LBA0, LenghtMSB, LenghtLSB, reg1, reg2
+	clr	reg2
+;The order of HighByte and LowByte is importent
+	sts	ATAPI_RWADataHigh,reg2		; Byte1
+	ldi	reg1,ATAPI_Play10
+	sts	ATAPI_RWADataLow,reg1		; Send Play Audio Command
+
+	sts	ATAPI_RWADataHigh,LBA2		; LBA2
+	sts	ATAPI_RWADataLow,LBA3		; LBA3
+
+	sts	ATAPI_RWADataHigh,LBA0		; LBA0
+	sts	ATAPI_RWADataLow,LBA1		; LBA1
+
+	sts	ATAPI_RWADataHigh,LenghtMSB	; Transfer Lenght (MSB)
+	sts	ATAPI_RWADataLow,LenghtLSB	; Transfer Lenght (LSB)
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte9
+	sts	ATAPI_RWADataLow,reg2		; Byte8
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte11
+	sts	ATAPI_RWADataLow,reg2		; Byte10
+	ENDM
+
+
+;***********************************************************************
+;* Macro 	: ATAPI_SCAN
+;*
+;* CREATED	: 09/07/2000 by Jens Funke
+;*
+;* LAST CHANGED : 09/07/2000 by Jens Funke
+;*
+;* DESCRIPTION  : Send the Scan Command to the IDE-Interface
+;*
+;* INPUT        : LBA3		= Scan Starting Address Field (MSB)
+;*		  LBA2		= Scan Starting Address Field
+;*		  LBA1		= Scan Starting Address Field
+;*		  LBA0		= Scan Starting Address Field (LSB)
+;*		  Direction	= Scan Direction
+;*		  LenghtLSB	= Format of address contained in the Scan Starting Address Field
+;*		  reg1		= tempreg1
+;*		  reg2		= tempreg2
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_SCAN	MACRO LBA3, LBA2, LBA1, LBA0, Direction, Type, reg1, reg2
+	clr	reg2
+;The order of HighByte and LowByte is importent
+	sts	ATAPI_RWADataHigh,Direction	; Direction
+	ldi	reg1,ATAPI_Scan
+	sts	ATAPI_RWADataLow,reg1		; Send Scan Command
+
+	sts	ATAPI_RWADataHigh,LBA2		; LBA2
+	sts	ATAPI_RWADataLow,LBA3		; LBA3
+
+	sts	ATAPI_RWADataHigh,LBA0		; LBA0
+	sts	ATAPI_RWADataLow,LBA1		; LBA1
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte7
+	sts	ATAPI_RWADataLow,reg2		; Byte6
+
+	sts	ATAPI_RWADataHigh,Type		; Byte9
+	sts	ATAPI_RWADataLow,reg2		; Byte8
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte11
+	sts	ATAPI_RWADataLow,reg2		; Byte10
+	ENDM
+
+;***********************************************************************
+;* Macro 	: ATAPI_STOP_PLAY_SCAN
+;*
+;* CREATED	: 09/07/2000 by Jens Funke
+;*
+;* LAST CHANGED : 09/07/2000 by Jens Funke
+;*
+;* DESCRIPTION  : Send the Stop Play/Scan Command to the IDE-Interface
+;*
+;* INPUT        : reg1		= tempreg1
+;*		  reg2		= tempreg2
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_STOP_PLAY_SCAN	MACRO	reg1, reg2
+	clr	reg2
+;The order of HighByte and LowByte is importent
+	sts	ATAPI_RWADataHigh,reg2		; Byte1
+	ldi	reg1,ATAPI_Stop
+	sts	ATAPI_RWADataLow,reg1		; Stop Play/Scan Command
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte3
+	sts	ATAPI_RWADataLow,reg2		; Byte2
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte5
+	sts	ATAPI_RWADataLow,reg2		; Byte4
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte7
+	sts	ATAPI_RWADataLow,reg2		; Byte6
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte9
+	sts	ATAPI_RWADataLow,reg2		; Byte8
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte11
+	sts	ATAPI_RWADataLow,reg2		; Byte10
+	ENDM
+
+;***********************************************************************
+;* Macro 	: ATAPI_PAUSE_RESUME
+;*
+;* CREATED	: 09/07/2000 by Jens Funke
+;*
+;* LAST CHANGED : 09/07/2000 by Jens Funke
+;*
+;* DESCRIPTION  : Send the Pause/Resume Command to the IDE-Interface
+;*
+;* INPUT        : Operation	= Option: ATAPI_Resume	= begin play at the block
+;*							  following the last block played
+;*					  ATAPI_Pause	= enter the hold track state
+;*		  reg1		= tempreg1
+;*		  reg2		= tempreg2
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_PAUSE_RESUME	MACRO	Operation, reg1, reg2
+	clr	reg2
+;The order of HighByte and LowByte is importent
+	sts	ATAPI_RWADataHigh,reg2		; Byte1
+	ldi	reg1,ATAPI_Pause_Resume
+	sts	ATAPI_RWADataLow,reg1		; Send Pause/Resume Command
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte3
+	sts	ATAPI_RWADataLow,reg2		; Byte2
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte5
+	sts	ATAPI_RWADataLow,reg2		; Byte4
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte7
+	sts	ATAPI_RWADataLow,reg2		; Byte6
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte9
+	sts	ATAPI_RWADataLow,Operation	; Operation
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte11
+	sts	ATAPI_RWADataLow,reg2		; Byte10
+	ENDM
+
+
+;***********************************************************************
+;* Macro 	: ATAPI_READ_TOC
+;*
+;* CREATED	: 09/07/2000 by Jens Funke
+;*
+;* LAST CHANGED : 09/07/2000 by Jens Funke
+;*
+;* DESCRIPTION  : Send the Read TOC Command to the IDE-Interface
+;*
+;* INPUT        : MSF		= MSF or LBA
+;*				  Options: ATAPI_Read_TOC_MSF = return address in MSF format
+;*					   ATAPI_Read_TOC_LBA = return address in LBA format
+;*		  Format0	= ?????? set to 0x00
+;*		  Track		= Starting Track / Session Number
+;*		  MSB		= Allocation Lenght (MSB)
+;*		  LSB		= Allocation Lenght (LSB)
+;*		  Format1	= Format Field
+;*				  Options: ATAPI_Read_TOC_FirstTrack
+;*					   ATAPI_Read_TOC_MultiSession
+;*					   ATAPI_Read_TOC_SubChannel
+;*		  reg1		= tempreg1
+;*		  reg2		= tempreg2
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_READ_TOC	MACRO MSF, Format0, Track, MSB, LSB, Format1, reg1, reg2
+	clr	reg2
+;The order of HighByte and LowByte is importent
+	sts	ATAPI_RWADataHigh,MSF		; MSF
+	ldi	reg1,ATAPI_ReadToc
+	sts	ATAPI_RWADataLow,reg1		; Send Read TOC Command
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte3
+	sts	ATAPI_RWADataLow,Format0	; Format0
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte5
+	sts	ATAPI_RWADataLow,reg2		; Byte4
+
+	sts	ATAPI_RWADataHigh,MSB		; AllocLenght (MSB)
+	sts	ATAPI_RWADataLow,Track		; Track
+
+	sts	ATAPI_RWADataHigh,Format1	; Format1
+	sts	ATAPI_RWADataLow,LSB		; AllocLenght (LSB)
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte11
+	sts	ATAPI_RWADataLow,reg2		; Byte10
+	ENDM
+
+;***********************************************************************
+;* Macro 	: ATAPI_MECH_STATUS
+;*
+;* CREATED	: 09/08/2000 by Jens Funke
+;*
+;* LAST CHANGED : 09/08/2000 by Jens Funke
+;*
+;* DESCRIPTION  : Send the Mechanism Status Command to the IDE-Interface
+;*
+;* INPUT        : MSB		= Allocation Lenght (MSB)
+;*		  LSB		= Allocation Lenght (LSB)
+;*		  reg1		= tempreg1
+;*		  reg2		= tempreg2
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_MECH_STATUS	MACRO	MSB, LSB, reg1, reg2
+	clr	reg2
+;The order of HighByte and LowByte is importent
+	sts	ATAPI_RWADataHigh,reg2		; Byte1
+	ldi	reg1,ATAPI_MechStatus
+	sts	ATAPI_RWADataLow,reg1		; Mechanism Status Command
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte3
+	sts	ATAPI_RWADataLow,reg2		; Byte2
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte5
+	sts	ATAPI_RWADataLow,reg2		; Byte4
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte7
+	sts	ATAPI_RWADataLow,reg2		; Byte6
+
+	sts	ATAPI_RWADataHigh,LSB		; Alloc Lenght (LSB)
+	sts	ATAPI_RWADataLow,MSB		; Alloc Length (MSB)
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte11
+	sts	ATAPI_RWADataLow,reg2		; Byte10
+	ENDM
+
+;***********************************************************************
+;* Macro 	: ATAPI_READ_CAP
+;*
+;* CREATED	: 09/08/2000 by Jens Funke
+;*
+;* LAST CHANGED : 09/08/2000 by Jens Funke
+;*
+;* DESCRIPTION  : Send the Read CD Capacitiy Command to the IDE-Interface
+;*
+;* INPUT        : reg1		= tempreg1
+;*		  reg2		= tempreg2
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_READ_CAP	MACRO	reg1, reg2
+	clr	reg2
+;The order of HighByte and LowByte is importent
+	sts	ATAPI_RWADataHigh,reg2		; Byte1
+	ldi	reg1,ATAPI_ReadCap
+	sts	ATAPI_RWADataLow,reg1		; Read CD Capacitiy Command
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte3
+	sts	ATAPI_RWADataLow,reg2		; Byte2
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte5
+	sts	ATAPI_RWADataLow,reg2		; Byte4
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte7
+	sts	ATAPI_RWADataLow,reg2		; Byte6
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte9
+	sts	ATAPI_RWADataLow,reg2		; Byte8
+
+	sts	ATAPI_RWADataHigh,reg2		; Byte11
+	sts	ATAPI_RWADataLow,reg2		; Byte10
+	ENDM
+
+;***********************************************************************
+;* Macro 	: ATAPI_TST_DRQ
+;*
+;* CREATED	: 13.05.2000 by Jens Funke
+;*
+;* LAST CHANGED : 13.05.2000 by Jens Funke
+;*
+;* DESCRIPTION  : Test DRQ and jump to jmpfalse if DRQ=0
+;*
+;* INPUT        : Lable to jump to if DRQ=0
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_TST_DRQ	MACRO jmpfalse
+        lds     temp4,ATAPI_RAStatus      ;read StatusByte
+	sbrs    temp4,ATAPI_DRQ
+	rjmp	jmpfalse
+	ENDM
+
+;***********************************************************************
+;* Macro 	: ATAPI_TST_BSY
+;*
+;* CREATED	: 13.05.2000 by Jens Funke
+;*
+;* LAST CHANGED : 13.05.2000 by Jens Funke
+;*
+;* DESCRIPTION  : Test BSY and jump to jmpfalse if BSY=0
+;*
+;* INPUT        : Lable to jump to if BSY=0
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_TST_BSY	MACRO jmpfalse
+        lds     temp4,ATAPI_RAStatus      ;read StatusByte
+	sbrs    temp4,ATAPI_BSY
+	rjmp	jmpfalse
+	ENDM
+
+;***********************************************************************
+;* MACRO	: ATAPI_READINIT_CMD
+;*
+;* CREATED	: 06.07.2000 by Jens Funke
+;*
+;* LAST CHANGED : 06.07.2000 by Jens Funke
+;*
+;* DESCRIPTION  : Initiate ReadCMD to read one Sector from LBA and return
+;*		  without reading
+;*
+;* INPUT        : LBA0 = 	LBA0 (LSB)
+;*		  LBA1 =	LBA1
+;*		  LBA2 =	LBA2
+;*		  LBA3 =	LBA3 (MSB)
+;*		  Mp3reg =	spezial Register to save the Status
+;*		  Mp3bit =	Bit to save the Status
+;*		  reg1 =	tempreg
+;*		  reg2 =	tempreg
+;*
+;* OUTPUT       : -
+;*
+;***********************************************************************
+ATAPI_READINIT_CMD	macro  LBA3, LBA2, LBA1, LBA0, Length1, Length0, MP3reg, MP3bit, reg1, reg2
+	lds	temp1,DEV_StatusFlags		; select drive
+	andi	temp1,(1<<DEV_DrvSelected)
+	sts	ATAPI_RWADrvSel,temp1
+	ldi     reg1,ATAPI_Packet        	; write Packet Command
+	sts     ATAPI_WACommand,reg1
+
+	clr	reg2
+	ldi	reg1,1
+	rcall	ATAPI_Wait_DRQ			; wait for DRQ
+
+	ATAPI_SEND_READ10	LBA3, LBA2, LBA1, LBA0, Length1, Length0, reg2, reg1
+	rcall	ATAPI_Wait_INTRQ				; wait for DRQ or INTRQ
+
+	set				; Set T if Buffer is not empty
+	bld	Mp3reg,Mp3bit		; load T to Mp3reg at bit Mp3bit
+	rcall	ATAPI_CheckCondition_CMD
+	endm
+
+;***********************************************************************
+;* FUNCTION	: ATAPI_READWORD_CMD
+;*
+;* CREATED	: 06.07.2000 by Jens Funke
+;*
+;* LAST CHANGED : 16.07.2000 by Marc Dressler
+;*
+;* DESCRIPTION  : Read a Word from the CDROM-Buffer
+;*		  (works only if Mp3bit=1)
+;*
+;* INPUT        : Mp3reg =	spezial Register to save the Status
+;*		  Mp3bit =	Bit to save the Status
+;*		  reg1 =	tempreg
+;*
+;* OUTPUT       : DataHigh =	Data HighByte
+;*		  DataLow =	Data LowByte
+;*
+;***********************************************************************
+ATAPI_READWORD_CMD	macro	DataLow, DataHigh, Mp3reg, Mp3bit, reg1
+        lds     DataLow, ATAPI_RWADataLow			; read IDE-Cache
+        lds     DataHigh, ATAPI_RWADataHigh			; read IDE-Cache
+
+	; I hope the Client will clear DRQ if the Buffer Transfer is completed (after 1024 Words)
+	; otherwise I'he got a problem
+        set							; if anybody has cleared T he must set it again
+Loop:
+	lds     reg1, ATAPI_RAStatus				; read StatusByte
+	sbrc	reg1, ATAPI_BSY
+	rjmp	Loop
+	sbrs	reg1, ATAPI_DRQ
+	clt							; Clear T if DRQ=0
+	bld	Mp3reg, Mp3bit					; load T to Mp3reg at bit Mp3bit
+	endm
+
+
+;***********************************************************************
+;* Macro 	: ATAPI_PRINT_BYTE_AS_BIN
+;*              
+;* CREATED	: 11/08/2000 by Jens Funke
+;*              
+;* LAST CHANGED : 11/08/2000 by Jens Funke
+;*              
+;* DESCRIPTION  : Print Byte as binary
+;*              
+;* INPUT        : byte - name of the byte
+;*
+;* OUTPUT       : -
+;*              
+;***********************************************************************
+;ATAPI_PRINT_BYTE_AS_BIN	macro byte
+;	push	param3
+;	push	ZL
+;	push	ZH
+;	UART_PRINT "\n\r byte : "
+;	lds	param3,byte
+;	SET_ZPOINTER	DATA1		;Macro
+;	rcall	UART_Print_As_Bin
+;	rcall	UART_WriteCRLF
+;	pop	ZH
+;	pop	ZL
+;	pop	param3
+;	
+;	endm	
+	
+;***********************************************************************
+	endif
+
+;*
+;* $Log: atapi.mac,v $
+;* Revision 1.1  2002/07/31 17:31:59  dressler
+;* initial checkin
+;*

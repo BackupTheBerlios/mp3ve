@@ -1,0 +1,101 @@
+;***********************************************************************
+;*  MP3VE - Standalone MP3 Player
+;*  Copyright (C) 2000,2001,2002 Marc Dressler, Jens Funke,
+;*                               Thomas Gutzeit, Nils Steenbock
+;*
+;*  This program is free software; you can redistribute it and/or modify
+;*  it under the terms of the GNU General Public License as published by
+;*  the Free Software Foundation; either version 2 of the License, or
+;*  (at your option) any later version.
+;*
+;*  This program is distributed in the hope that it will be useful,
+;*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;*  GNU General Public License for more details.
+;*
+;*  You should have received a copy of the GNU General Public License
+;*  along with this program; if not, write to the Free Software
+;*  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;*
+;*  info@mp3ve.de
+;***********************************************************************
+
+;***********************************************************************
+;* $Id: debuglevel.txt,v 1.1 2002/07/31 17:31:59 dressler Exp $
+;***********************************************************************
+
+This list gives a short overview to all possible assembler variables.
+Please define them only at the top of your main program. 
+
+ATAPI
+=====
+
+atapi_disabled		disables the include of atapi fuctions 
+
+atapi_debug_low		enables importent error messages like Timeouts
+atapi_debug_medium	enables the output of importent register values 
+atapi_debug_high	enables all debug messages
+
+atapi_slow_device	switch on if time to load the disc is longer then 8 sec, e.g. for old devices
+atapi_int_enabled	enables the interrupt mode of ATAPI devices (default)
+atapi_minspeed		speed down 
+
+
+ATA
+===
+
+ata_disabled		disables the include of ata fuctions 
+
+ata_debug_low		enables importent error messages like Timeouts
+ata_debug_medium	enables the output of importent register values 
+ata_debug_high		enables all debug messages
+
+DEV
+===
+
+dev_debug_low		enables importent error messages
+dev_debug_medium	enables the output of importent register values
+dev_debug_high		enables all debug messages
+
+
+Stack
+=====
+
+stack_external		use xram as stack-memory
+
+
+MP3
+===
+
+mp3_debug		
+mp3_retrigger_debug
+MP3_NoQueue		without MP3-Queue
+mp3_NoReadErrorCheck	ignore read errors while playing
+mp3_old			use old mp3 version
+sta_debug	
+mp3_disabled		disables the include of mp3.inc
+	
+cs4338			dac 16bit left padded (STA)
+cs4331			dac 18bit left padded (MAS, STA)
+dac3550			dac (not implemented yet)
+signals_inverted	mp3audio signals inverted (disable in Hardware Rev < 1.5)
+
+
+RPC
+===
+
+rpc_disable		disables the include rpc
+rpc_old			use old rpc commands
+rpc_debug
+
+
+System
+===
+
+sys_debug
+
+;*
+;* $Log: debuglevel.txt,v $
+;* Revision 1.1  2002/07/31 17:31:59  dressler
+;* initial checkin
+;*
